@@ -15,6 +15,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+var saveImage bool = false
+
 func StartConversationHandler(c echo.Context) error {
 	var msg models.Message
 	if err := c.Bind(&msg); err != nil {
@@ -94,34 +96,36 @@ func ImageHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid format or subformat"})
 	}
 
-	imageData, err := base64.StdEncoding.DecodeString(msg.Content)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Unable to decode base64 content"})
-	}
-
-	uniqueID := uuid.New().String()
-	extension := strings.ToLower(string(msg.Subformat))
-	filename := fmt.Sprintf("%s.%s", uniqueID, extension)
-	basePath := "/Users/hbzengin/src/go-server-example/uploads"
-	filepath := filepath.Join(basePath, filename)
-
-	if _, err := os.Stat(basePath); os.IsNotExist(err) {
-		if err := os.Mkdir(basePath, 0755); err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{
-				"error": "Unable to create uploads directory",
-			})
+	if saveImage {
+		imageData, err := base64.StdEncoding.DecodeString(msg.Content)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Unable to decode base64 content"})
 		}
-	}
 
-	if err := os.WriteFile(filepath, imageData, 0644); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to save file"})
+		uniqueID := uuid.New().String()
+		extension := strings.ToLower(string(msg.Subformat))
+		filename := fmt.Sprintf("%s.%s", uniqueID, extension)
+		basePath := "/Users/hbzengin/src/go-server-example/uploads"
+		filepath := filepath.Join(basePath, filename)
+
+		if _, err := os.Stat(basePath); os.IsNotExist(err) {
+			if err := os.Mkdir(basePath, 0755); err != nil {
+				return c.JSON(http.StatusInternalServerError, map[string]string{
+					"error": "Unable to create uploads directory",
+				})
+			}
+		}
+
+		if err := os.WriteFile(filepath, imageData, 0644); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Unable to save file"})
+		}
 	}
 
 	ollamaPrompt := "What do you see in this image?"
 	payload := llms.OllamaRequest{
 		Model:  "llava",
 		Prompt: ollamaPrompt,
-		Image:  filepath,
+		Image:  msg.Content,
 		Stream: false,
 	}
 

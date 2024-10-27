@@ -2,12 +2,10 @@ package llms
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
 type OllamaRequest struct {
@@ -55,22 +53,10 @@ func GetTextResponse(payload *OllamaRequest) (string, error) {
 }
 
 func GetImageResponse(req *OllamaRequest) (string, error) {
-	file, err := os.Open(req.Image)
-	if err != nil {
-		return "", fmt.Errorf("failed to open image file: %w", err)
-	}
-	defer file.Close()
-
-	imageData, err := io.ReadAll(file)
-	if err != nil {
-		return "", fmt.Errorf("failed to read image file: %w", err)
-	}
-	base64Image := base64.StdEncoding.EncodeToString(imageData)
-
 	payload := map[string]interface{}{
 		"model":  req.Model,
 		"prompt": req.Prompt,
-		"images": []string{base64Image},
+		"images": []string{req.Image},
 		"stream": req.Stream,
 	}
 
