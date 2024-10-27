@@ -47,7 +47,8 @@ func TestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	payload := llms.OllamaRequest{
-		Model:  "llama3.1",
+		// Model must exist on the machine
+		Model:  "llama3.2",
 		Prompt: msg.Content,
 		Stream: false,
 	}

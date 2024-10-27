@@ -1,0 +1,1 @@
+NLIP executable should be moved to /usr/local/bin/nlip for the Launch Daemon to successfully run it upon boot.
