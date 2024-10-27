@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -16,90 +17,60 @@ type AuthBody struct {
 	Password string `json:"password" validate:"required"`
 }
 
-func Register(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
+func Register(c echo.Context) error {
+	// Bind the incoming JSON request body to AuthBody struct
 	var body AuthBody
-	var hash []byte
-	var err error
-
-	err = handleAuthBody(w, r, &body)
-	if err != nil {
-		return
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
 	}
 
-	// bcrypt already handles salting...
-	hash, err = bcrypt.GenerateFromPassword([]byte(body.Password), 10)
+	// Hash the password using bcrypt
+	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), 10)
 	if err != nil {
-		http.Error(w, "Failed to hash pasword. "+err.Error(), http.StatusBadRequest)
-		return
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to hash password: " + err.Error()})
 	}
 
+	// Create a new user record
 	user := models.User{Email: body.Email, Password: string(hash)}
 	result := initializers.DB.Create(&user) // pass pointer of data to Create
 
 	if result.Error != nil {
-		http.Error(w, "Failed to create user. "+result.Error.Error(), http.StatusBadRequest)
-		return
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Failed to create user: " + result.Error.Error()})
 	}
 
-	w.WriteHeader(http.StatusOK)
+	return c.NoContent(http.StatusOK)
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
+func Login(c echo.Context) error {
+	// Bind the incoming JSON request body to AuthBody struct
 	var body AuthBody
-	err := handleAuthBody(w, r, &body)
-	if err != nil {
-		return
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
 	}
 
+	// Retrieve the user from the database and validate the password
 	user := GetUser(&body)
 	if user == nil {
-		prepareTextResponse(w, http.StatusNotFound, "User does not exist.")
-		return
+		return c.JSON(http.StatusNotFound, map[string]string{"error": "User does not exist."})
 	}
 
+	// Create a JWT token with a 30-day expiration
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": user.ID,
 		"exp": time.Now().Add(time.Hour * 24 * 30).Unix(),
 	})
 
+	// Sign the token with a secret
 	tokenString, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+		return c.NoContent(http.StatusInternalServerError)
 	}
-	// If mobile, send in JSON
+
+	// Respond with the token in JSON format
 	resp := map[string]string{
 		"token": tokenString,
 	}
-	prepareJSONResponse(w, http.StatusOK, resp)
-
-	// TODO: Consider the below code later.
-
-	// 	userAgent := r.Header.Get("User-Agent")
-	// 	if strings.Contains(userAgent, "Mobile") {
-	// 		// If mobile, send in JSON
-	// 		resp := map[string]string{
-	// 			"token": tokenString,
-	// 		}
-	// 		prepareJSONResponse(w, http.StatusOK, resp)
-	// 	} else {
-	// 		// If web,
-	// 		cookie := &http.Cookie{
-	// 			Name:     "access_token",
-	// 			Value:    tokenString,
-	// 			Path:     "/",
-	// 			HttpOnly: true, // Prevent JavaScript access to the cookie
-	// 			Secure:   true, // Send cookie over HTTPS only
-	// 			SameSite: http.SameSiteStrictMode,
-	// 			Expires:  time.Now().Add(time.Hour * 24 * 30), // how long to store on the browser
-	// 		}
-	// 		http.SetCookie(w, cookie)
-	// 		w.WriteHeader(http.StatusOK)
-	// 	}
+	return c.JSON(http.StatusOK, resp)
 }
 
 // Returns a "copy", not direct User reference from the DB!

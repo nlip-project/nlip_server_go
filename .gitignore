@@ -1,4 +1,6 @@
 druid.eecs.umich.edu-key.pem
+druid.eecs.umich.edu.pem
+uploads/
 
 # env
 .env
