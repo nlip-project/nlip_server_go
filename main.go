@@ -21,8 +21,7 @@ func main() {
 	e.POST("/register/", handlers.Register)
 	e.POST("/login/", handlers.Login)
 
-	certFile := "/Users/hbzengin/src/go-server-example/druid.eecs.umich.edu.pem"
-	keyFile := "/Users/hbzengin/src/go-server-example/druid.eecs.umich.edu-key.pem"
-	// log.Fatal(http.ListenAndServeTLS(addr, certFile, keyFile, mux))
+	certFile := "/Users/hbzengin/src/go-server-example/nlip.crt"
+	keyFile := "/Users/hbzengin/src/go-server-example/nlip.key"
 	e.Logger.Fatal(e.StartTLS(":80", certFile, keyFile))
 }

@@ -3,11 +3,10 @@
 # Variables
 EXECUTABLE="/usr/local/bin/nlip"
 PLIST_PATH="/Library/LaunchDaemons/com.nlip.plist"
-GO_PROJECT_PATH="../"
 
 # Build the Go project
 echo "Building the Go project..."
-sudo go build -o $EXECUTABLE $GO_PROJECT_PATH
+sudo go build -o $EXECUTABLE
 
 if [ $? -ne 0 ]; then
   echo "Build failed. Exiting."

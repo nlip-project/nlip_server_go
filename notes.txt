@@ -1,1 +1,3 @@
 NLIP executable should be moved to /usr/local/bin/nlip for the Launch Daemon to successfully run it upon boot.
+The script located at scripts/deploy.sh automates the deployment process for a MacOS machine, Druid, at University of Michigan.
+Druid also has a launch service configuration (.plist) that runs the nlip executable on boot and automatically restarts on failure.
