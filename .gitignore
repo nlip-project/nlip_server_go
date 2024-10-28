@@ -1,4 +1,6 @@
 nlip.key
+nlip.crt
+rootCA.pem
 uploads/
 
 # env

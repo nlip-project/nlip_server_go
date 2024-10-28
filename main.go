@@ -15,9 +15,9 @@ func init() {
 func main() {
 	e := echo.New()
 
-	e.POST("/nlip/", handlers.StartConversationHandler)
-	e.POST("/text/", handlers.TextHandler)
-	e.POST("/image/", handlers.ImageHandler)
+	// This is unused for now.
+	// e.POST("/nlip/", handlers.StartConversationHandler)
+	e.POST("/", handlers.HandleIncomingMessage)
 	e.POST("/register/", handlers.Register)
 	e.POST("/login/", handlers.Login)
 
