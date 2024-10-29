@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"nlip/llms"
@@ -110,6 +111,12 @@ func respondToText(c echo.Context, msg *models.Message) error {
 		Content:   resp,
 	}
 
+	prettyJSON, err := json.MarshalIndent(jsonResp, "", "  ")
+	if err != nil {
+		fmt.Println("Failed to generate JSON:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	fmt.Printf("@@@ Response is @@@\n%s\n@@@-------------@@@\n", string(prettyJSON))
 	return c.JSON(http.StatusOK, jsonResp)
 }
 
@@ -171,6 +178,12 @@ func respondToImage(c echo.Context, msg *models.Message, requestPrompt *string) 
 		Content:   ollamaResponse,
 	}
 
+	prettyJSON, err := json.MarshalIndent(jsonResp, "", "  ")
+	if err != nil {
+		fmt.Println("Failed to generate JSON:", err)
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	fmt.Printf("@@@ Response is @@@\n%s\n@@@-------------@@@\n", string(prettyJSON))
 	return c.JSON(http.StatusOK, jsonResp)
 }
 

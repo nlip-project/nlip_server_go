@@ -48,7 +48,6 @@ func GetTextResponse(payload *OllamaRequest) (string, error) {
 		return "", nil
 	}
 
-	fmt.Println("Response is ", response)
 	return response, nil
 }
 
