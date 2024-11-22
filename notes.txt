@@ -1,3 +1,8 @@
-NLIP executable should be moved to /usr/local/bin/nlip for the Launch Daemon to successfully run it upon boot.
-The script located at scripts/deploy.sh automates the deployment process for a MacOS machine, Druid, at University of Michigan.
-Druid also has a launch service configuration (.plist) that runs the nlip executable on boot and automatically restarts on failure.
+1) NLIP executable should be moved to /usr/local/bin/nlip for the Launch Daemon to successfully run it upon boot.
+   Druid has a launch service configuration (.plist) that runs the nlip executable there on boot and automatically restarts on failure.
+   The script located at scripts/deploy.sh automates the deployment process for a MacOS machine, Druid, at University of Michigan.
+2) Likewise, there must be a .env file located in the root of the project. Then, after running the scripts/deploy.sh from the root.
+   it will read the .env file and make all the variables there globally available for the program to run correctly. The environment
+   variables there are imperative for the Auth functionality to work.
+3) For this implementation to work, a OAUTH 2.0 server must be running on localhost:8080!
+   The handler functions assume that.

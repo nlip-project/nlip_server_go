@@ -7,50 +7,62 @@ BUILD_PATH="./nlip"
 CERT_NAME="NLIPSigningCert"
 KEYCHAIN_PASSWORD=$(cat scripts/.keychain_password)
 
-# Build the Go project
-echo "Building the Go project..."
+
+if [ -f .env ]; then
+  echo "[INFO] .env file found. Exporting environment variables."
+else
+  echo "[ERROR] .env file not found in the current directory. Exiting."
+  exit 1
+fi
+
+# Persist variables to /etc/environment
+while IFS= read -r line; do
+  # Skip comments and empty lines
+  if [[ ! "$line" =~ ^# ]] && [[ "$line" =~ = ]]; then
+    key=$(echo "$line" | cut -d '=' -f 1)
+    if grep -q "^$key=" /etc/environment; then
+      # Update existing variable
+      sudo sed -i '' "s|^$key=.*|$line|" /etc/environment
+    else
+      # Add new variable
+      sudo sh -c "echo $line >> /etc/environment"
+    fi
+  fi
+done < .env
+
+echo "[SUCCESS] Environment variables persisted to /etc/environment."
+echo "Step 2: Building the Go project..."
 go build -o $BUILD_PATH
 
 if [ $? -ne 0 ]; then
-  echo "Build failed. Exiting."
+  echo "[ERROR] Build failed. Exiting."
   exit 1
 fi
-echo "Build succeeded."
+echo "[SUCCESS] Build succeeded."
 
-# Unlock the keychain
-echo "Unlocking the keychain..."
+echo "Step 3: Unlocking the keychain..."
 security unlock-keychain -p "$KEYCHAIN_PASSWORD" ~/Library/Keychains/login.keychain-db
 
 if [ $? -ne 0 ]; then
-  echo "Failed to unlock keychain. Exiting."
+  echo "[ERROR] Failed to unlock keychain. Exiting."
   exit 1
 fi
+echo "[SUCCESS] Keychain unlocked."
 
-# Sign the executable
-echo "Signing the executable..."
+echo "Step 4: Signing the executable with certificate '$CERT_NAME'..."
 codesign -s "$CERT_NAME" ./nlip
 
 if [ $? -ne 0 ]; then
-  echo "Code signing failed. Exiting."
+  echo "[ERROR] Code signing failed. Exiting."
   exit 1
 fi
-echo "Code signing succeeded."
+echo "[SUCCESS] Code signing completed."
 
-# Move the executable to the install path
-echo "Moving the executable to $EXECUTABLE..."
+echo "Step 5: Moving the executable to $EXECUTABLE..."
 sudo mv $BUILD_PATH $EXECUTABLE
 
-# Set permissions for the executable
-# echo "Setting permissions for the executable..."
-# sudo chmod +x $EXECUTABLE
-# sudo chown root:wheel $EXECUTABLE
-
-# This seems necessary to process changes correctly
-sleep 0.5
-
-# Reload the launchd service
-echo "Reloading the launchd service..."
-sudo launchctl unload $PLIST_PATH 2>/dev/null
-sudo launchctl load $PLIST_PATH
-
-echo "Deployment complete. The service has been reloaded."
+if [ $? -ne 0 ]; then
+  echo "[ERROR] Failed to move the executable. Exiting."
+  exit 1
+fi
+echo "[SUCCESS] Executable moved to $EXECUTABLE."

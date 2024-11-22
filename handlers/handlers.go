@@ -59,6 +59,8 @@ func HandleIncomingMessage(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed", "details": err.Error()})
 	}
 
+	fmt.Printf(">>> Request incoming with Format: '%s', Subformat: '%s', Content '%s'\n", msg.Format, msg.Subformat, msg.Content)
+
 	switch msg.Format {
 	case "text":
 		return respondToText(c, &msg)
@@ -105,19 +107,14 @@ func respondToText(c echo.Context, msg *models.Message) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Bad request: " + err.Error()})
 	}
 
-	jsonResp := models.Message{
+	response := models.Message{
 		Format:    "text",
 		Subformat: "english",
 		Content:   resp,
 	}
 
-	prettyJSON, err := json.MarshalIndent(jsonResp, "", "  ")
-	if err != nil {
-		fmt.Println("Failed to generate JSON:", err)
-		return c.NoContent(http.StatusInternalServerError)
-	}
-	fmt.Printf("@@@ Response is @@@\n%s\n@@@-------------@@@\n", string(prettyJSON))
-	return c.JSON(http.StatusOK, jsonResp)
+	fmt.Printf("<<< Response outgoing with Format: '%s', Subformat: '%s', Content '%s'\n", response.Format, response.Subformat, response.Content)
+	return c.JSON(http.StatusOK, response)
 }
 
 func respondToImage(c echo.Context, msg *models.Message, requestPrompt *string) error {
