@@ -1,6 +1,6 @@
 # NLIP Go Server
 
-Welcome to the NLIP Go Server! This project is a Go implementation of the NLIP server. It is built using the Echo web and Goth authentication framework. It demonstrates handling of various message types using the NLIP structure LLAMA and LLaVa models.
+Welcome to the NLIP Go Server! This project is a Go implementation of the NLIP server. It is built using the Echo web and Goth authentication frameworks. It demonstrates handling of various message types using the NLIP protocol along with LLAMA and LLaVa models.
 
 ## Quickstart
 
