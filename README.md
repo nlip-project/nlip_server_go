@@ -62,9 +62,9 @@ Dependencies:
 Endpoints
 
 1. `/auth/`
-   - **GET /auth/**: Provides login links for Google and Custom OpenID Connect.
-   - **GET /auth/:provider/**: Initiates login for the specified provider
-   - **GET /auth/:provider/callback/**: Handles the provider's callback and returns user data.
+   - **GET /auth/**: Provides login links for Google and Custom OpenID Connect (Client should directly use this)
+   - **GET /auth/:provider/**: Initiates login for the specified provider (Client indirectly uses this)
+   - **GET /auth/:provider/callback/**: Handles the provider's callback and returns user data (Client indirectly uses this)
 
 2. `/nlip/`
    - Handles messages in various formats.
@@ -93,7 +93,7 @@ Endpoints
      ```
 
 3. `/upload/`
-   - **POST /upload/**: Accepts file uploads via form upload. Saves files to the specified `UPLOAD_PATH`.
+   - **POST /upload/**: Accepts file uploads via form upload. Saves files to the specified `UPLOAD_PATH` in the `.env` file.
 
 ### Packages Overview
 
