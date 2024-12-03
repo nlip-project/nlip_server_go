@@ -93,7 +93,7 @@ Endpoints
      ```
 
 3. `/upload/`
-   - **POST /upload/**: Accepts file uploads via form upload. Saves files to the specified `UPLOAD_PATH` in the `.env` file.
+   - **POST /upload/**: Accepts file uploads using form upload. Saves files to the specified `UPLOAD_PATH` in the `.env` file.
 
 ### Packages Overview
 
