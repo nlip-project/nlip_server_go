@@ -20,8 +20,8 @@ git clone git@github.com:nlip-project/nlip_server_go.git
        - `EXECUTABLE_LOCATION`: The location where the built executable will be placed
        - `UPLOAD_PATH`: The directory where uploaded files will be saved
      - Authentication Configuration:
-       - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_URL_CALLBACK` for Google OAuth.
-       - `CUSTOM_CLIENT_ID`, `CUSTOM_CLIENT_SECRET`, `CUSTOM_URL_CALLBACK`, `CUSTOM_DISCOVERY_URL` for the custom OpenID Connect (OIDC) provider.
+       - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_URL_CALLBACK` for Google OAuth
+       - `CUSTOM_CLIENT_ID`, `CUSTOM_CLIENT_SECRET`, `CUSTOM_URL_CALLBACK`, `CUSTOM_DISCOVERY_URL` for custom OpenID Connect (OIDC) provider
 
 3. Deploy the server:
    - Use the script located at `scripts/deploy.sh` to automate the deployment process.
