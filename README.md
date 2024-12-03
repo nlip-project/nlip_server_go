@@ -50,14 +50,14 @@ If using a launch service, and writing `nlip` process output to files in `/var/l
 This server provides a RESTful API for the NLIP protocol and supports handling various formats.
 
 #### Core Features:
-- OAuth authentication with Google and a custom OpenID Connect provider.
-- File uploads and request handling for various data formats.
-- Integration with LLAMA and LLava models for text and image processing.
+- OAuth authentication with Google and a custom OpenID Connect provider
+- File uploads and request handling for various data formats
+- Integration with LLAMA and LLava models for text and image processing
 
 Dependencies:
-- `Echo`: Web framework for Go.
-- `Goth`: OAuth2 support for authentication.
-- `Ollama`: Backend for LLAMA and LLava models.
+- `Echo`: Web framework for Go
+- `Goth`: OAuth2 authentication package for Go
+- `Ollama`: Backend for LLAMA and LLava models
 
 Endpoints
 
@@ -67,7 +67,7 @@ Endpoints
    - **GET /auth/:provider/callback/**: Handles the provider's callback and returns user data (Client indirectly uses this)
 
 2. `/nlip/`
-   - Handles messages in various formats.
+   - Handles messages in various formats. This is the main endpoint where all requests should be sent.
    - Text format:
      ```
      {
