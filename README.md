@@ -116,13 +116,13 @@ Endpoints
 
 ## Pitfalls
 
-1. Model Availability Error:
+1. Model availability error:
    - Ensure Ollama has the required models (`llama3.2` for text and `llava` for images). Missing models cause silent failures, which could be hard to debug.
 2. Number of submessages:
    - Currently allows only one submessage per message
 3. Authentication:
    - Tokens are returned to the client as a JSON response, and they must be managed by the client.
-4. Deployment Scriot:
+4. Deployment script:
    - Verify the `.env` file. All required variables must be present.
 
 ## TODO
