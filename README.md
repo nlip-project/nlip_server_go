@@ -117,7 +117,7 @@ Endpoints
 ## Pitfalls
 
 1. Model availability error:
-   - Ensure Ollama has the required models (`llama3.2` for text and `llava` for images). Missing models cause silent failures, which could be hard to debug.
+   - Make sure Ollama has the required models (`llama3.2` for text and `llava` for images). Missing models cause silent failures, which could be hard to debug.
 2. Number of submessages:
    - Currently allows only one submessage per message
 3. Authentication:
