@@ -1,71 +1,135 @@
 # NLIP Go Server
 
-Welcome to the NLIP Go Server! This project is a basic **Go** implementation of NLIP server side protocol.
-
-This package provides an example implementation in Go using the Echo web framework.
+Welcome to the NLIP Go Server! This project is a Go implementation of the NLIP server. It depends on Echo and Goth frameworks and shows handling of various message types using the NLIP structure and LLMs.
 
 ## Quickstart
 
-1. Clone the project
-```bash
+1. Clone the project:
+```
 git clone git@github.com:nlip-project/nlip_server_go.git
 ```
 
-2. View and modify the included `.env_example` file. This is an example `.env` configuraiton needed for the project. Rename it to `.env`. Inside this file:
-   - Required variables are necessary for NLIP to run as intended. `PORT`, `CERT_FILE` and  `KEY_FILE` (for HTTPS), `EXECUTABLE LOCATION`, `UPLOAD_PATH` must be provided.
-   - Optional variables are not necessary. Variables included in the `.env` file are used to streamline the deployment and running of the server smoother on a MacOS server. These can be safely removed.
-   - This version uses  a Custom OAuth server and Google's OAuth server for authentication. The Custom client can be found in the same organization repository, under `nlip-iam`. Please follow the instructions there to set up the custom OAuth server.
+2. Configure the environment:
+   - Rename the included `.env_example` file to `.env`
 
-3. After you are sure that the `.env` file is correctly set up, you can use the script located at `scripts/deploy.sh` to automate your deployment process.
-   - **IMPORTANT**: If you are not using any of the **OPTIONAL** variables, you need to go into `scripts/deploy.sh` to remove the section between `#### TODO` and `#### END_TODO`. Not doing so will cause the script to fail.
+   - Edit the `.env` file and set the required variables:
+     - Required Variables:
+       - `PORT`: The port number servers will listen on
+       - `CERT_FILE`: Path to the SSL certificate (for HTTPS)
+       - `KEY_FILE`: Path to the SSL key (for HTTPS)
+       - `EXECUTABLE_LOCATION`: The location where the built executable will be placed
+       - `UPLOAD_PATH`: The directory where uploaded files will be saved
+     - Authentication Configuration:
+       - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_URL_CALLBACK` for Google OAuth.
+       - `CUSTOM_CLIENT_ID`, `CUSTOM_CLIENT_SECRET`, `CUSTOM_URL_CALLBACK`, `CUSTOM_DISCOVERY_URL` for the custom OpenID Connect (OIDC) provider.
 
-## Creating a launch service
+3. Deploy the server:
+   - Use the script located at `scripts/deploy.sh` to automate the deployment process.
+   - **IMPORTANT**: If you are not using the optional MacOS-specific variables, remove the section between `#### TODO` and `#### END_TODO` in `scripts/deploy.sh`.
+   - Run the deployment script:
+     ```
+     ./scripts/deploy.sh
+     ```
 
-#### MacOS
+## Creating a Launch Service
 
-Lorem Ipsum
+#### MacOS:
+  1. Create a plist file in `/Library/LaunchDaemons/` for your executable configuration
+  2. Use `launchctl` to load and manage the service
 
-#### Linux
+#### Linux:
+  1. Create a systemd service file in `/etc/systemd/system/`
+  2. Use `systemctl` to load and manage the service
 
-Lorem Ipsum
+## Logging (if using a Launch Service)
+
+If using a launch service, and writing `nlip` process output to files in `/var/log/`, the one line code in `scripts/monitor_log.sh` can be used to display the logs in the terminal.
 
 ## Documentation
 
-Lorem Ipsum
+This server provides a RESTful API for the NLIP protocol and supports handling various formats.
 
-## Endpoints
+#### Core Features:
+- OAuth authentication with Google and a custom OpenID Connect provider.
+- File uploads and request handling for various data formats.
+- Integration with LLAMA and LLava models for text and image processing.
 
-#### `/nlip/`
+Dependencies:
+- `Echo`: Web framework for Go.
+- `Goth`: OAuth2 support for authentication.
+- `Ollama`: Backend for LLAMA and LLava models.
 
-Accepted formats:
-1. Text
-```
-{
-    "format": “text”,
-    "subformat": “english”,
-    "content": "Tell me a fun fact",
-}
-```
-2. Binary
-```
-{
-    "format": “text”,
-    "subformat": “english”,
-    "content": "Describe this picture",
-    "submessages": [
-        {
-            "format": "binary",
-            "subformat": "jpeg",
-            "content": <base-64-encoding>
-        }
-    ]
-}
-```
+Endpoints
+
+1. `/auth/`
+   - **GET /auth/**: Provides login links for Google and Custom OpenID Connect.
+   - **GET /auth/:provider/**: Initiates login for the specified provider
+   - **GET /auth/:provider/callback/**: Handles the provider's callback and returns user data.
+
+2. `/nlip/`
+   - Handles messages in various formats.
+   - Text format:
+     ```
+     {
+         "format": "text",
+         "subformat": "english",
+         "content": "Tell me a fun fact"
+     }
+     ```
+   - Binary (Image) format:
+     ```
+     {
+         "format": "text",
+         "subformat": "english",
+         "content": "Describe this picture",
+         "submessages": [
+             {
+                 "format": "binary",
+                 "subformat": "jpeg",
+                 "content": "<base-64-encoded-image>"
+             }
+         ]
+     }
+     ```
+
+3. `/upload/`
+   - **POST /upload/**: Accepts file uploads via form upload. Saves files to the specified `UPLOAD_PATH`.
+
+### Packages Overview
+
+1. `auth` package:
+   - Handles OAuth provider setup using Goth
+   - Defines the routes for authentication using OAuth providers
+
+2. `handlers` package:
+   - Main NLIP logic. Implements functions to process different message formats:
+     - Text messages are passed to the LLAMA model
+     - Binary messages (images) are processed using the LLava model
+   - File uploads are supported with validation and optional storage
+
+3. `llms` package:
+   - Communicates with Ollama using its API for model inference
+   - Supports various formats (currently text and image-based requests)
+
+4. `models` package:
+   - Defines data structures for message formats and their validation
 
 ## Pitfalls
 
-Lorem Ipsum
+1. Model Availability Error:
+   - Ensure Ollama has the required models (`llama3.2` for text and `llava` for images). Missing models cause silent failures, which could be hard to debug.
+2. Number of submessages:
+   - Currently allows only one submessage per message
+3. Authentication:
+   - Tokens are returned to the client as a JSON response, and they must be managed by the client.
+4. Deployment Scriot:
+   - Verify the `.env` file. All required variables must be present.
 
 ## TODO
 
-Lorem Ipsum
+1. Extend the `/nlip/` endpoint to handle additional formats and more than one submessage.
+2. Add a voting mechanism that gets responses from multiple LLMs and decides on a combined answer.
+2. Add support for LLM response streaming
+3. Add better error handling
+4. Add unit and integration tests
+5. Add more OAuth methods and use the authentication method as described by the spec.
