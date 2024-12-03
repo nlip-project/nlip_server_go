@@ -28,7 +28,7 @@ func UploadHandler(c echo.Context) error {
 	fileExt := filepath.Ext(file.Filename)
 	uuidFilename += fileExt
 
-	dst, err := os.Create("/Users/hbzengin/src/go-server-example/uploads/" + uuidFilename)
+	dst, err := os.Create(os.Getenv("UPLOAD_PATH") + uuidFilename)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "create file error: "+err.Error())
 	}

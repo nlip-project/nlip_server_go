@@ -1,9 +1,8 @@
 nlip.key
 nlip.crt
 rootCA.pem
-scripts/.keychain_password
 uploads/
-secrets.txt
+**/notes.txt
 
 # env
 .env

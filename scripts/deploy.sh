@@ -1,68 +1,87 @@
 #!/bin/bash
 
-# Variables
-EXECUTABLE="/usr/local/bin/nlip"
-PLIST_PATH="/Library/LaunchDaemons/com.nlip.plist"
-BUILD_PATH="./nlip"
-CERT_NAME="NLIPSigningCert"
-KEYCHAIN_PASSWORD=$(cat scripts/.keychain_password)
+# .env file expected to be in project root, where this script is ran
+ENV_FILE=".env"
 
+REQUIRED_VARS=("PORT" "CERT_FILE" "KEY_FILE" "EXECUTABLE_LOCATION")
+OPTIONAL_VARS=("KEYCHAIN_PASSWORD" "CERT_NAME" "PLIST_PATH" "KEYCHAIN_DATABASE")
 
-if [ -f .env ]; then
-  echo "[INFO] .env file found. Exporting environment variables."
+if [ -f "$ENV_FILE" ]; then
+  echo ".env file found. Exporting environment variables."
+  set -a
+  source "$ENV_FILE"
+  set +a
 else
-  echo "[ERROR] .env file not found in the current directory. Exiting."
+  echo ".env file not found. Exiting."
   exit 1
 fi
 
-# Persist variables to /etc/environment
-while IFS= read -r line; do
-  # Skip comments and empty lines
-  if [[ ! "$line" =~ ^# ]] && [[ "$line" =~ = ]]; then
-    key=$(echo "$line" | cut -d '=' -f 1)
-    if grep -q "^$key=" /etc/environment; then
-      # Update existing variable
-      sudo sed -i '' "s|^$key=.*|$line|" /etc/environment
-    else
-      # Add new variable
-      sudo sh -c "echo $line >> /etc/environment"
+# Making sure all required variables exist
+echo "Validating required variables..."
+for VAR in "${REQUIRED_VARS[@]}"; do
+    if [ -z "${!VAR}" ]; then
+        echo "Error: $VAR is not set. This is a required variable. Exiting."
+        exit 1
     fi
-  fi
-done < .env
+done
+echo "All required variables are set."
 
-echo "[SUCCESS] Environment variables persisted to /etc/environment."
-echo "Step 2: Building the Go project..."
-go build -o $BUILD_PATH
 
+# Remove existing executable
+if [ -f "$EXECUTABLE_LOCATION" ]; then
+  echo "Removing existing executable at $EXECUTABLE_LOCATION..."
+  rm -f "$EXECUTABLE_LOCATION"
+fi
+
+# Build the new executable
+echo "Building the Go project..."
+go build -o $EXECUTABLE_LOCATION
 if [ $? -ne 0 ]; then
-  echo "[ERROR] Build failed. Exiting."
+  echo "Build failed. Exiting."
   exit 1
 fi
-echo "[SUCCESS] Build succeeded."
+echo "Build succeeded."
 
-echo "Step 3: Unlocking the keychain..."
-security unlock-keychain -p "$KEYCHAIN_PASSWORD" ~/Library/Keychains/login.keychain-db
 
+############################# TODO: If NOT using Keychain or NOT on MacOS, remove this section until END_TODO #############################
+# Making sure all optional variables exist, IF using this section
+  echo "Validating optional variables..."
+  for VAR in "${OPTIONAL_VARS[@]}"; do
+    if [ -z "${!VAR}" ]; then
+        echo "Error: $VAR is not set. This is a optional variable, but you must remove this section from the script. Exiting."
+        exit 1
+    fi
+  done
+
+echo "Unlocking the keychain..."
+security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_DATABASE"
 if [ $? -ne 0 ]; then
-  echo "[ERROR] Failed to unlock keychain. Exiting."
+  echo "Failed to unlock keychain. Exiting."
   exit 1
 fi
-echo "[SUCCESS] Keychain unlocked."
 
-echo "Step 4: Signing the executable with certificate '$CERT_NAME'..."
-codesign -s "$CERT_NAME" ./nlip
-
+echo "Signing the executable..."
+codesign -s "$CERT_NAME" "$EXECUTABLE_LOCATION"
 if [ $? -ne 0 ]; then
-  echo "[ERROR] Code signing failed. Exiting."
+  echo "Code signing failed. Exiting."
   exit 1
 fi
-echo "[SUCCESS] Code signing completed."
+echo "Code signing succeeded."
+############################# END_TODO: If NOT using Keychain or NOT on MacOS, remove this section starting from TODO #############################
 
-echo "Step 5: Moving the executable to $EXECUTABLE..."
-sudo mv $BUILD_PATH $EXECUTABLE
 
-if [ $? -ne 0 ]; then
-  echo "[ERROR] Failed to move the executable. Exiting."
-  exit 1
-fi
-echo "[SUCCESS] Executable moved to $EXECUTABLE."
+# set permissions for the executable
+echo "Setting permissions for the executable..."
+sudo chmod +x $EXECUTABLE_LOCATION
+# root privileges
+sudo chown root:wheel $EXECUTABLE_LOCATION
+
+# Important: This seems necessary to process changes correctly due to a race condition
+sleep 0.5
+
+# Reload the launchd service
+echo "Reloading the launchd service..."
+sudo launchctl unload $PLIST_PATH 2>/dev/null
+sudo launchctl load $PLIST_PATH
+
+echo "Deployment complete. The service has been reloaded."

@@ -11,6 +11,7 @@ func init() {
 	validate = validator.New()
 }
 
+// TODO: Use these for validation
 // Documentation recommends single instance as it does caching
 var validate *validator.Validate
 

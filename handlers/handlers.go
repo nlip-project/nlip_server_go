@@ -18,6 +18,8 @@ import (
 
 var saveImage bool = false
 
+var basePath string
+
 func StartConversationHandler(c echo.Context) error {
 	var msg models.Message
 	if err := c.Bind(&msg); err != nil {
@@ -28,16 +30,7 @@ func StartConversationHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Validation failed", "details": err.Error()})
 	}
 
-	// For testing right now
-	fmt.Println(msg.Control)
-	fmt.Println(msg.Format)
-	fmt.Println(msg.Subformat)
-	fmt.Println(msg.Content)
-	fmt.Println(msg.Submessages)
-	fmt.Println(msg.Token)
-	fmt.Println(msg.Subtokens)
-
-	// Dummy, hardcoded response:
+	// Hardcoded response:
 	response := &models.Message{
 		Format:    models.Text,
 		Subformat: models.English,
@@ -69,8 +62,6 @@ func HandleIncomingMessage(c echo.Context) error {
 	case "structured":
 		return c.NoContent(http.StatusInternalServerError)
 	case "binary":
-		// Second arg nil because no prompt sent to the server.
-		// Can prompt ever be sent as a submessage of text type?
 		return respondToImage(c, &msg, nil)
 	case "location":
 		return c.NoContent(http.StatusInternalServerError)
@@ -84,7 +75,7 @@ func HandleIncomingMessage(c echo.Context) error {
 func respondToText(c echo.Context, msg *models.Message) error {
 	if msg.Submessages != nil {
 		// If here, that means there was a submessage.
-		// Assume there can only be one submessage for now
+		// Assuming there can only be one submessage for now
 		// Later implementation will allow for more submessages
 		// Also assuming this is of type binary
 		if len(*msg.Submessages) > 1 || (*msg.Submessages)[0].Format != "binary" {
@@ -118,7 +109,7 @@ func respondToText(c echo.Context, msg *models.Message) error {
 }
 
 func respondToImage(c echo.Context, msg *models.Message, requestPrompt *string) error {
-	// For now binary only supporting image!
+	// For now binary only supports images
 	if !isValidImageSubformat(msg.Subformat) {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid format or subformat"})
 	}
@@ -132,7 +123,6 @@ func respondToImage(c echo.Context, msg *models.Message, requestPrompt *string) 
 		uniqueID := uuid.New().String()
 		extension := strings.ToLower(string(msg.Subformat))
 		filename := fmt.Sprintf("%s.%s", uniqueID, extension)
-		basePath := "/Users/hbzengin/src/go-server-example/uploads"
 		filepath := filepath.Join(basePath, filename)
 
 		if _, err := os.Stat(basePath); os.IsNotExist(err) {

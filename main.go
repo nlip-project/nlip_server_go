@@ -5,20 +5,22 @@ import (
 	"nlip/handlers"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 )
 
 func init() {
-	// initializers.InitDb()
-	// initializers.SyncDB()
+	if err := godotenv.Load(); err != nil {
+		panic("Error loading .env file")
+	}
 }
 
 func main() {
-
 	e := echo.New()
 
+	// Allow for routes ending with or without '/'
 	e.Pre(middleware.AddTrailingSlash())
 
 	e.Logger.SetLevel(log.DEBUG)
@@ -26,14 +28,23 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// Allow all origins only for DEVELOPMENT
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{echo.GET, echo.POST, echo.PUT, echo.DELETE},
+	}))
+
 	e.POST("/nlip/", handlers.HandleIncomingMessage)
 	e.POST("/upload/", handlers.UploadHandler)
+	auth.SetupAuth(e)
 
-	e.GET("/login/", auth.HandleLogin)
-	e.GET("/auth/", auth.HandleCallback)
-	e.GET("/protected/", auth.ProtectedHandler)
+	// HTTPS
+	certFile := os.Getenv("CERT_FILE")
+	keyFile := os.Getenv("KEY_FILE")
+	e.Logger.Fatal(e.StartTLS(os.Getenv("PORT"), certFile, keyFile))
 
-	certFile := "/Users/hbzengin/src/go-server-example/nlip.crt"
-	keyFile := "/Users/hbzengin/src/go-server-example/nlip.key"
-	e.Logger.Fatal(e.StartTLS(":80", certFile, keyFile))
+	// HTTP
+	// To run with HTTP, comment out the above three lines and uncomment the below line
+	// Optionally, change the "PORT" environment variable to :80 in the .env file
+	// e.Logger.Fatal(e.Start(os.Getenv("PORT")))
 }

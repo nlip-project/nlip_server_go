@@ -17,7 +17,8 @@ const (
 	ImagePNG  Subformat = "image/png"
 	ImageTIFF Subformat = "image/tiff"
 	AudioMP3  Subformat = "audio/mp3"
-	TextSF    Subformat = "text" // need SF for subformat. better way?
+	TextSF    Subformat = "text" // not to be confused with Text format
 	GPS       Subformat = "gps"
-	// TODO: Think about the generic ones.
+
+	// TODO: Add the new subformats as they come up
 )

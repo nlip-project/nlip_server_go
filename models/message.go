@@ -1,7 +1,6 @@
 package models
 
 // Using "github.com/go-playground/validator/v10" for validation.
-
 // Currently have "required" validation checks. Need more.
 
 type Message struct {
