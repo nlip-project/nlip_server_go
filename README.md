@@ -116,20 +116,22 @@ Endpoints
 
 ## Pitfalls
 
-1. Model availability error:
-   - Make sure Ollama has the required models (`llama3.2` for text and `llava` for images). Missing models cause silent failures, which could be hard to debug.
-2. Number of submessages:
+1. Scripts:
+   - Scripts inside the `scripts/` directory should be run from the project root
+3. Model availability error:
+   - Make sure Ollama has the required models (`llama3.2` for text and `llava` for images). Missing models cause silent failures, which could be hard to debug
+4. Number of submessages:
    - Currently allows only one submessage per message
-3. Authentication:
-   - Tokens are returned to the client as a JSON response, and they must be managed by the client.
-4. Deployment script:
-   - Verify the `.env` file. All required variables must be present.
+5. Authentication:
+   - Tokens are returned to the client as a JSON response, and they must be managed by the client
+6. Deployment script:
+   - Verify the `.env` file. All required variables must be present
 
 ## TODO
 
-1. Extend the `/nlip/` endpoint to handle additional formats and more than one submessage.
-2. Add a voting mechanism that gets responses from multiple LLMs and decides on a combined answer.
+1. Extend the `/nlip/` endpoint to handle additional formats and more than one submessage
+2. Add a voting mechanism that gets responses from multiple LLMs and decides on a combined answer
 2. Add support for LLM response streaming
 3. Add better error handling
 4. Add unit and integration tests
-5. Add more OAuth methods and use the authentication method as described by the spec.
+5. Add more OAuth methods and use the authentication method as described by the spec
