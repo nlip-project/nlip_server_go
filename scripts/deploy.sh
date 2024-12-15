@@ -43,7 +43,7 @@ fi
 echo "Build succeeded."
 
 
-############################# TODO: If NOT using Keychain or NOT on MacOS, remove this section until END_TODO #############################
+############################# START_TODO: If NOT using Keychain or NOT on MacOS, remove this section until END_TODO #############################
 # Making sure all optional variables exist, IF using this section
   echo "Validating optional variables..."
   for VAR in "${OPTIONAL_VARS[@]}"; do
@@ -76,6 +76,7 @@ sudo chmod +x $EXECUTABLE_LOCATION
 # root privileges
 sudo chown root:wheel $EXECUTABLE_LOCATION
 
+############################# START_TODO: If NOT using a launch configuration (e.g., .plist on MacOS), remove this section until END_TODO #############################
 # Important: This seems necessary to process changes correctly due to a race condition
 sleep 0.5
 
@@ -85,3 +86,4 @@ sudo launchctl unload $PLIST_PATH 2>/dev/null
 sudo launchctl load $PLIST_PATH
 
 echo "Deployment complete. The service has been reloaded."
+############################# END_TODO: If NOT using a launch configuration (e.g., .plist on MacOS), remove this section until END_TODO #############################
