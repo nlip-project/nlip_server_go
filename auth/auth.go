@@ -16,9 +16,9 @@ func setupProviders() {
 	goth.UseProviders(
 		google.New(os.Getenv("GOOGLE_CLIENT_ID"), os.Getenv("GOOGLE_CLIENT_SECRET"), os.Getenv("GOOGLE_URL_CALLBACK")),
 	)
-	
+
 	openidConnect, err := openidConnect.New(
-		os.Getenv("CUSTOM_CLIENT_ID"),
+		os.Getenv("CUSTOM_CL IENT_ID"),
 		os.Getenv("CUSTOM_CLIENT_SECRET"),
 		os.Getenv("CUSTOM_URL_CALLBACK"),
 		os.Getenv("CUSTOM_DISCOVERY_URL"),

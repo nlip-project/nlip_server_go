@@ -28,14 +28,14 @@ echo "All required variables are set."
 
 
 # Remove existing executable
-if [ -f "$EXECUTABLE_LOCATION" ]; then
-  echo "Removing existing executable at $EXECUTABLE_LOCATION..."
-  rm -f "$EXECUTABLE_LOCATION"
-fi
+# if [ -f "$EXECUTABLE_LOCATION" ]; then
+#   echo "Removing existing executable at $EXECUTABLE_LOCATION..."
+#   rm -f "$EXECUTABLE_LOCATION"
+# fi
 
 # Build the new executable
 echo "Building the Go project..."
-go build -o $EXECUTABLE_LOCATION
+sudo go build -o $EXECUTABLE_LOCATION
 if [ $? -ne 0 ]; then
   echo "Build failed. Exiting."
   exit 1
@@ -60,13 +60,20 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-echo "Signing the executable..."
-codesign -s "$CERT_NAME" "$EXECUTABLE_LOCATION"
-if [ $? -ne 0 ]; then
-  echo "Code signing failed. Exiting."
-  exit 1
+echo "Checking if the executable is already signed..."
+codesign -v "$EXECUTABLE_LOCATION" 2>/dev/null
+
+if [ $? -eq 0 ]; then
+  echo "The executable is already signed. Skipping code signing."
+else
+  echo "The executable is not signed. Proceeding with code signing..."
+  codesign -s "$CERT_NAME" "$EXECUTABLE_LOCATION"
+  if [ $? -ne 0 ]; then
+    echo "Code signing failed. Exiting."
+    exit 1
+  fi
+  echo "Code signing succeeded."
 fi
-echo "Code signing succeeded."
 ############################# END_TODO: If NOT using Keychain or NOT on MacOS, remove this section starting from TODO #############################
 
 
