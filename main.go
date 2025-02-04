@@ -1,7 +1,6 @@
 package main
 
 import (
-	"nlip/auth"
 	"nlip/handlers"
 	"os"
 
@@ -35,8 +34,8 @@ func main() {
 	}))
 
 	e.POST("/nlip/", handlers.HandleIncomingMessage)
-	e.POST("/upload/", handlers.UploadHandler)
-	auth.SetupAuth(e)
+	e.POST("/upload/:tag", handlers.UploadHandler)
+	// auth.SetupAuth(e)
 
 	// HTTPS
 	certFile := os.Getenv("CERT_FILE")

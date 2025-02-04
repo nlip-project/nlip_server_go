@@ -56,7 +56,7 @@ func HandleIncomingMessage(c echo.Context) error {
 
 	switch msg.Format {
 	case "text":
-		return respondToText(c, &msg)
+		return respondToTextURI(c)
 	case "authentication":
 		return c.NoContent(http.StatusInternalServerError)
 	case "structured":
@@ -107,6 +107,27 @@ func respondToText(c echo.Context, msg *models.Message) error {
 	fmt.Printf("<<< Response outgoing with Format: '%s', Subformat: '%s', Content '%s'\n", response.Format, response.Subformat, response.Content)
 	return c.JSON(http.StatusOK, response)
 }
+
+// BEGIN Large Data Upload
+func respondToTextURI(c echo.Context) error {
+	// If here, then it's a regular text type message. (dont need to check, hard coded example)
+	// Create the upload URL
+	tag := uuid.New().String()
+	uploadURL := fmt.Sprintf("https://%s/upload/%s", c.Request().Host, tag)
+	//uploadURL := fmt.Sprintf("%s/upload/", c.Request().Host)
+
+	// Prepare the response
+	response := models.Message{
+		Format:    "structured",
+		Subformat: "uri",
+		Content:   uploadURL,
+	}
+
+	fmt.Printf("<<< Response outgoing with Format: '%s', Subformat: '%s', Content '%s'\n", response.Format, response.Subformat, response.Content)
+	return c.JSON(http.StatusOK, response)
+}
+
+// END Large Data Upload
 
 func respondToImage(c echo.Context, msg *models.Message, requestPrompt *string) error {
 	// For now binary only supports images
